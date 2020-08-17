@@ -26,8 +26,10 @@ public class TextFile {
         return content;
     }
 
+    //TODO: Use this later to display in window title
     public SimpleStringProperty getFileName() {
         return fileName;
     }
+
 }
 

@@ -48,4 +48,5 @@ public class EditorModel {
     public String paste() {
         return Clipboard.getSystemClipboard().getString();
     }
+
 }

@@ -12,7 +12,7 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 
-<?import editor.EditorTextArea?>
+<?import editor.EditorTextArea?> <!--comment this out to make changes to scene-->
 
 <BorderPane prefHeight="400.0" prefWidth="600.0"
             xmlns="http://javafx.com/javafx/11.0.1"
@@ -34,14 +34,14 @@
                 </Menu>
                 <Menu text="Edit">
                     <items>
-                        <MenuItem disable="true" text="Undo" />
+                        <MenuItem onAction="#onUndo" text="Undo" />
                         <SeparatorMenuItem />
                         <MenuItem onAction="#onCut" text="Cut" />
                         <MenuItem onAction="#onCopy" text="Copy" />
                         <MenuItem onAction="#onPaste" text="Paste" />
                         <MenuItem onAction="#onDelete" text="Delete" />
                         <SeparatorMenuItem />
-                        <MenuItem disable="true" text="Find..." />
+                        <MenuItem onAction="#onFind" text="Find..." />
                         <MenuItem disable="true" text="Find Next" />
                         <MenuItem disable="true" text="Find Previous" />
                         <MenuItem disable="true" text="Replace" />
@@ -71,6 +71,7 @@
         </MenuBar>
     </top>
     <center>
+        <!--delete "Editor" from EditorTextArea to make changes to scene-->
         <EditorTextArea fx:id="textArea" prefWidth="200.0" BorderPane.alignment="CENTER" />
     </center>
     <bottom>

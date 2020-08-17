@@ -3,6 +3,7 @@ package editor;
 import javafx.application.Platform;
 import javafx.beans.Observable;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.css.Match;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
@@ -14,12 +15,13 @@ import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DataFormat;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Font;
-import javafx.stage.FileChooser;
-import javafx.stage.Stage;
+import javafx.stage.*;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class EditorController {
 
@@ -68,26 +70,33 @@ public class EditorController {
         zoomLabel.textProperty().bind(zoom.asString("%d%%"));
     }
 
-    // FILE MENU
+
+    /* * * * * * * *\
+     *  FILE MENU *
+    \* * * * * * * */
 
     @FXML
     private void onNew() {
-        if (!textArea.hasUnsavedChanges(currentTextFile.getContent()) || savePrompt()) {
+        if (textArea.hasNoUnsavedChanges(currentTextFile.getContent()) || savePrompt()) {
             textArea.clear();
             currentTextFile = new TextFile(null, Collections.singletonList(""));
         }
     }
 
-    //TODO: Add onNewWindow Method
+    //TODO: Add onNewWindow() Method
 
     @FXML
     private void onOpen() {
-        if (!textArea.hasUnsavedChanges(currentTextFile.getContent()) || savePrompt()) {
+        if (textArea.hasNoUnsavedChanges(currentTextFile.getContent()) || savePrompt()) {
             FileChooser fileChooser = new FileChooser();
             fileChooser.getExtensionFilters().addAll(
                     new FileChooser.ExtensionFilter("Text Documents", "*.txt"),
                     new FileChooser.ExtensionFilter("All Files", "*.*"));
             File file = fileChooser.showOpenDialog(null);
+            //TODO: Find a way to set initial directory to last accessed directory
+            //https://java-buddy.blogspot.com/2012/03/javafx-20-filechooser-set-initial.html
+            //if (currentTextFile != null)
+            //    fileChooser.setInitialDirectory(currentTextFile.getFile().toFile());
             if (file != null) {
                 IOResult<TextFile> io = model.open(file.toPath());
 
@@ -125,7 +134,7 @@ public class EditorController {
 
     @FXML
     private void onExit() {
-        if (!textArea.hasUnsavedChanges(currentTextFile.getContent()) || savePrompt())
+        if (textArea.hasNoUnsavedChanges(currentTextFile.getContent()) || savePrompt())
             model.exit();
     }
 
@@ -163,7 +172,15 @@ public class EditorController {
         return result.isPresent() && result.get().equals(alert.getButtonTypes().get(1));
     }
 
-    // EDIT MENU
+
+    /* * * * * * * *\
+     *  EDIT MENU  *
+    \* * * * * * * */
+
+    @FXML
+    private void onUndo() {
+        textArea.undo();
+    }
 
     @FXML
     private void onCopy() {
@@ -186,12 +203,67 @@ public class EditorController {
         textArea.deleteText(textArea.getSelection().getStart(), textArea.getSelection().getEnd());
     }
 
+    //TODO: Make a GUI for onFind, finish it
+    @FXML
+    private void onFind() {
+        Scanner scan = new Scanner(System.in);
+        String text = textArea.getText();
+        int i1, i2;
+
+        // Popup menu
+        System.out.print("Find what: ");
+        String regex = scan.next();
+
+        System.out.print("Direction (U/d) ");
+        boolean searchUp = scan.next().toLowerCase().equals("u");
+
+        //System.out.print("Match Case? (Y/n) ");
+        //if (scan.next().toLowerCase().equals("y"))
+        //    text = text.toLowerCase();
+
+        //System.out.println("Wrap around? (Y/n) ");
+        //if(scan.next().toLowerCase().equals("y"))
+
+        //System.out.println("Regex? (Y/n)");
+        //boolean isRegex = scan.next().toLowerCase().equals("y");
+
+
+        //if (isRegex) {
+        //    Pattern pattern = Pattern.compile(regex);
+        //    Matcher matcher = pattern.matcher(text);
+
+        //    System.out.println(matcher.find());
+        //    System.out.println(matcher.start());
+            //i1 = matcher.start();
+            //i2 = matcher.end();
+
+            //textArea.selectRange(i1, i2);
+        //} else {
+        //    System.out.println("no regex here");
+        //}
+
+        // search direction
+        if (searchUp) i1 = text.lastIndexOf(regex);
+        else i1 = text.indexOf(regex);
+
+        // find pattern and select
+        if (i1 == -1) System.out.println("Cannot find \"" + regex + "\""); // popup
+        else textArea.selectRange(i1, i1 + regex.length());
+
+        // replace selection
+        System.out.print("Replace with: ");
+        textArea.replaceSelection(scan.next());
+    }
+
     @FXML
     private void onSelectAll() {
         textArea.selectAll();
     }
 
-    // VIEW MENU
+
+    /* * * * * * * *\
+     *  VIEW MENU  *
+    \* * * * * * * */
 
     private void changeZoom(int sizeChange) {
         zoom.setValue(zoom.intValue() + sizeChange);
@@ -225,7 +297,10 @@ public class EditorController {
         statusBar.managedProperty().bind(statusBar.visibleProperty());
     }
 
-    // HELP MENU
+
+    /* * * * * * * *\
+     *  HELP MENU  *
+    \* * * * * * * */
 
     @FXML
     private void onAbout() {
@@ -238,6 +313,7 @@ public class EditorController {
         stage.getIcons().add(new Image(getClass().getResourceAsStream("resources/icon.png")));
         stage.show();
     }
+
 
     // STATUS BAR
 
