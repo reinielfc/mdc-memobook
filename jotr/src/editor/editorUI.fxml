@@ -11,51 +11,48 @@
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 
-<?import editor.EditorTextArea?> <!--comment this out to make changes to scene-->
-
-<BorderPane prefHeight="400.0" prefWidth="600.0"
-            xmlns="http://javafx.com/javafx/11.0.1"
-            xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="editor.EditorController">
+<BorderPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="editor.EditorController">
     <top>
         <MenuBar BorderPane.alignment="CENTER">
             <menus>
                 <Menu text="File">
                     <items>
-                        <MenuItem onAction="#onNew" text="New" />
-                        <MenuItem disable="true" text="New Window" />
-                        <MenuItem onAction="#onOpen" text="Open..." />
-                        <MenuItem onAction="#onSave" text="Save" />
-                        <MenuItem onAction="#onSaveAs" text="Save As..." />
+                        <MenuItem fx:id="newCmd" onAction="#onNew" text="New" />
+                        <MenuItem fx:id="newWindowCmd" disable="true" text="New Window" />
+                        <MenuItem fx:id="openCmd" onAction="#onOpen" text="Open..." />
+                        <MenuItem fx:id="saveCmd" onAction="#onSave" text="Save" />
+                        <MenuItem fx:id="saveAsCmd" onAction="#onSaveAs" text="Save As..." />
                         <SeparatorMenuItem />
-                        <MenuItem onAction="#onExit" text="Exit" />
+                        <MenuItem fx:id="exitCmd" onAction="#onExit" text="Exit" />
                     </items>
                 </Menu>
                 <Menu text="Edit">
                     <items>
-                        <MenuItem onAction="#onUndo" text="Undo" />
+                        <MenuItem fx:id="undoCmd" onAction="#onUndo" text="Undo" />
                         <SeparatorMenuItem />
-                        <MenuItem onAction="#onCut" text="Cut" />
-                        <MenuItem onAction="#onCopy" text="Copy" />
-                        <MenuItem onAction="#onPaste" text="Paste" />
-                        <MenuItem onAction="#onDelete" text="Delete" />
+                        <MenuItem fx:id="cutCmd" onAction="#onCut" text="Cut" />
+                        <MenuItem fx:id="copyCmd" onAction="#onCopy" text="Copy" />
+                        <MenuItem fx:id="pasteCmd" onAction="#onPaste" text="Paste" />
+                        <MenuItem fx:id="deleteCmd" onAction="#onDelete" text="Delete" />
                         <SeparatorMenuItem />
-                        <MenuItem onAction="#onFind" text="Find..." />
-                        <MenuItem disable="true" text="Find Next" />
-                        <MenuItem disable="true" text="Find Previous" />
-                        <MenuItem disable="true" text="Replace" />
+                        <MenuItem fx:id="findCmd" onAction="#onFind" text="Find..." />
+                        <MenuItem fx:id="findNextCmd" disable="true" text="Find Next" />
+                        <MenuItem fx:id="findPreviousCmd" disable="true" text="Find Previous" />
+                        <MenuItem fx:id="replaceCmd" onAction="#onReplace" text="Replace" />
+                        <MenuItem fx:id="goToCmd" disable="true" text="Go To..." />
                         <SeparatorMenuItem />
-                        <MenuItem onAction="#onSelectAll" text="Select All" />
+                        <MenuItem fx:id="selectAllCmd" onAction="#onSelectAll" text="Select All" />
                     </items>
                 </Menu>
                 <Menu text="View">
                     <items>
                         <Menu text="Zoom">
                             <items>
-                                <MenuItem onAction="#onZoomIn" text="Zoom In" />
-                                <MenuItem onAction="#onZoomOut" text="Zoom Out" />
-                                <MenuItem onAction="#onRestoreZoom" text="Restore Default Zoom" />
+                                <MenuItem fx:id="zoomInCmd" onAction="#onZoomIn" text="Zoom In" />
+                                <MenuItem fx:id="zoomOutCmd" onAction="#onZoomOut" text="Zoom Out" />
+                                <MenuItem fx:id="restoreZoomCmd" onAction="#onRestoreZoom" text="Restore Default Zoom" />
                             </items>
                         </Menu>
                         <CheckMenuItem onAction="#onWordWrap" text="Word Wrap" />
@@ -64,39 +61,36 @@
                 </Menu>
                 <Menu text="Help">
                     <items>
-                        <MenuItem onAction="#onAbout" text="About Jotr" />
+                        <MenuItem onAction="#onAbout" text="About Memobook" />
                     </items>
                 </Menu>
             </menus>
         </MenuBar>
     </top>
     <center>
-        <!--delete "Editor" from EditorTextArea to make changes to scene-->
-        <EditorTextArea fx:id="textArea" prefWidth="200.0" BorderPane.alignment="CENTER" />
+        <TextArea fx:id="textArea" prefWidth="200.0" BorderPane.alignment="CENTER" />
     </center>
     <bottom>
-        <HBox fx:id="statusBar" alignment="BOTTOM_RIGHT" BorderPane.alignment="BOTTOM_CENTER">
+        <HBox fx:id="statusBar" alignment="BOTTOM_RIGHT" scaleShape="false" BorderPane.alignment="BOTTOM_CENTER">
             <children>
-            <Separator orientation="VERTICAL" prefWidth="10.0" />
-                <Label disable="true" text="Ln 0, Col 0">
-               <padding>
-                  <Insets right="70.0" />
-               </padding></Label>
-            <Separator orientation="VERTICAL" prefWidth="0.0">
-               <padding>
-                  <Insets left="2.0" right="2.0" />
-               </padding>
-            </Separator>
-            <Label fx:id="zoomLabel" text="100%">
+            <Separator layoutX="528.0" layoutY="12.0" minWidth="0.0" orientation="VERTICAL" />
+                <Label disable="true" minWidth="-Infinity" text="Ln 0, Col 0" HBox.hgrow="ALWAYS" />
+            <Region minWidth="5.0" prefWidth="70.0" />
+            <Separator minWidth="0.0" orientation="VERTICAL" />
+            <Label fx:id="zoomLabel" minWidth="-Infinity" text="100%">
                <padding>
                   <Insets right="10.0" />
                </padding>
             </Label>
-            <Separator layoutX="568.0" layoutY="12.0" orientation="VERTICAL" prefWidth="0.0">
+            <Separator layoutX="560.0" layoutY="12.0" minWidth="0.0" orientation="VERTICAL" />
+            <Label disable="true" minWidth="-Infinity" prefHeight="12.0" text="LF" />
+            <Region layoutX="348.0" layoutY="12.0" minWidth="5.0" prefWidth="20.0" />
+            <Separator layoutX="528.0" layoutY="12.0" minWidth="0.0" orientation="VERTICAL" />
+            <Label disable="true" minWidth="0.0" prefWidth="120.0" text="UTF-8">
                <padding>
-                  <Insets right="80.0" />
+                  <Insets right="70.0" />
                </padding>
-            </Separator>
+            </Label>
             </children>
             <padding>
                 <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />

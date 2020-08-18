@@ -1,32 +1,28 @@
 package editor;
 
-import javafx.application.Platform;
-import javafx.beans.Observable;
 import javafx.beans.property.SimpleIntegerProperty;
-import javafx.css.Match;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextArea;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
-import javafx.scene.input.Clipboard;
-import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.DataFormat;
+import javafx.scene.input.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Font;
 import javafx.stage.*;
 
 import java.io.File;
-import java.io.IOException;
+import java.io.FileDescriptor;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
+import static javafx.scene.input.KeyCode.*;
 
 public class EditorController {
 
     @FXML
-    private EditorTextArea textArea;
+    private TextArea textArea;
 
     private TextFile currentTextFile;
 
@@ -41,6 +37,13 @@ public class EditorController {
     private Label zoomLabel;
 
     private SimpleIntegerProperty zoom;
+
+    @FXML
+    private MenuItem
+            newCmd, newWindowCmd, openCmd, saveCmd, saveAsCmd, exitCmd,
+            undoCmd, cutCmd, copyCmd, pasteCmd, deleteCmd,
+            findCmd, findNextCmd, findPreviousCmd, replaceCmd, goToCmd, selectAllCmd,
+            zoomInCmd, zoomOutCmd, restoreZoomCmd;
 
     // Constructor
 
@@ -65,11 +68,45 @@ public class EditorController {
                     super.setValue(number);
             }
         };
+
         //set zoom value to 100 and bind it to zoomLabel
         zoom.setValue(100);
         zoomLabel.textProperty().bind(zoom.asString("%d%%"));
+
+        // Key Combinations
+
+        //file menu
+        newCmd.setAccelerator(new KeyCodeCombination(N, KeyCombination.CONTROL_DOWN));
+        newWindowCmd.setAccelerator(new KeyCodeCombination(N, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN));
+        openCmd.setAccelerator(new KeyCodeCombination(O, KeyCombination.CONTROL_DOWN));
+        saveCmd.setAccelerator(new KeyCodeCombination(S, KeyCombination.CONTROL_DOWN));
+        saveAsCmd.setAccelerator(new KeyCodeCombination(S, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN));
+        exitCmd.setAccelerator(new KeyCodeCombination(E, KeyCombination.CONTROL_DOWN));
+
+        //edit menu
+        undoCmd.setAccelerator(new KeyCodeCombination(Z, KeyCombination.CONTROL_DOWN));
+        cutCmd.setAccelerator(new KeyCodeCombination(X, KeyCombination.CONTROL_DOWN));
+        copyCmd.setAccelerator(new KeyCodeCombination(C, KeyCombination.CONTROL_DOWN));
+        pasteCmd.setAccelerator(new KeyCodeCombination(V, KeyCombination.CONTROL_DOWN));
+        deleteCmd.setAccelerator(new KeyCodeCombination(DELETE));
+        findCmd.setAccelerator(new KeyCodeCombination(F, KeyCombination.CONTROL_DOWN));
+        findNextCmd.setAccelerator(new KeyCodeCombination(F3));
+        findPreviousCmd.setAccelerator(new KeyCodeCombination(F3, KeyCombination.SHIFT_DOWN));
+        replaceCmd.setAccelerator(new KeyCodeCombination(H, KeyCombination.CONTROL_DOWN));
+        goToCmd.setAccelerator(new KeyCodeCombination(G, KeyCombination.CONTROL_DOWN));
+        selectAllCmd.setAccelerator(new KeyCodeCombination(A, KeyCombination.CONTROL_DOWN));
+
+        //zoom menu
+        zoomInCmd.setAccelerator(new KeyCodeCombination(ADD, KeyCombination.CONTROL_DOWN));
+        zoomOutCmd.setAccelerator(new KeyCodeCombination(SUBTRACT, KeyCombination.CONTROL_DOWN));
+        restoreZoomCmd.setAccelerator(new KeyCodeCombination(DIGIT0, KeyCombination.CONTROL_DOWN));
+
+
     }
 
+    public TextArea getTextArea() {
+        return textArea;
+    }
 
     /* * * * * * * *\
      *  FILE MENU *
@@ -77,8 +114,10 @@ public class EditorController {
 
     @FXML
     private void onNew() {
-        if (textArea.hasNoUnsavedChanges(currentTextFile.getContent()) || savePrompt()) {
+        List<String> currentTextArea = Arrays.asList(textArea.getText().split("\n"));
+        if (currentTextArea.equals(currentTextFile.getContent()) || savePrompt()) {
             textArea.clear();
+            //reinitialize current text file
             currentTextFile = new TextFile(null, Collections.singletonList(""));
         }
     }
@@ -87,7 +126,8 @@ public class EditorController {
 
     @FXML
     private void onOpen() {
-        if (textArea.hasNoUnsavedChanges(currentTextFile.getContent()) || savePrompt()) {
+        List<String> currentTextArea = Arrays.asList(textArea.getText().split("\n"));
+        if (currentTextArea.equals(currentTextFile.getContent()) || savePrompt()) {
             FileChooser fileChooser = new FileChooser();
             fileChooser.getExtensionFilters().addAll(
                     new FileChooser.ExtensionFilter("Text Documents", "*.txt"),
@@ -113,11 +153,13 @@ public class EditorController {
 
     @FXML
     private void onSave() {
-        if (currentTextFile.getFile() == null) {
+        try {
+            List<String> currentTextArea = Arrays.asList(textArea.getText().split("\n"));
+            currentTextFile = new TextFile(currentTextFile.getFile(), currentTextArea);
+            model.save(currentTextFile);
+        } catch (Exception e) {
+            e.printStackTrace();
             onSaveAs();
-        } else {
-            TextFile textFile = new TextFile(currentTextFile.getFile(), textArea.getTextAsList());
-            model.save(textFile);
         }
     }
 
@@ -128,13 +170,15 @@ public class EditorController {
                 new FileChooser.ExtensionFilter("Text Documents", "*.txt"),
                 new FileChooser.ExtensionFilter("All Files", "*.*"));
         File file = fileChooser.showSaveDialog(null);
-        TextFile textFile = new TextFile(file.toPath(), textArea.getTextAsList());
+        List<String> currentTextArea = Arrays.asList(textArea.getText().split("\n"));
+        TextFile textFile = new TextFile(file.toPath(), currentTextArea);
         model.save(textFile);
     }
 
     @FXML
     private void onExit() {
-        if (textArea.hasNoUnsavedChanges(currentTextFile.getContent()) || savePrompt())
+        List<String> currentTextArea = Arrays.asList(textArea.getText().split("\n"));
+        if (currentTextArea.equals(currentTextFile.getContent()) || savePrompt())
             model.exit();
     }
 
@@ -184,7 +228,11 @@ public class EditorController {
 
     @FXML
     private void onCopy() {
-        model.copy(textArea.getSelectedText());
+        final Clipboard clipboard = Clipboard.getSystemClipboard();
+        final ClipboardContent content = new ClipboardContent();
+
+        content.putString(textArea.getSelectedText());
+        clipboard.setContent(content);
     }
 
     @FXML
@@ -195,7 +243,7 @@ public class EditorController {
 
     @FXML
     private void onPaste() {
-        textArea.insertText(textArea.getCaretPosition(), model.paste());
+        textArea.insertText(textArea.getCaretPosition(), Clipboard.getSystemClipboard().getString());
     }
 
     @FXML
@@ -204,55 +252,29 @@ public class EditorController {
     }
 
     //TODO: Make a GUI for onFind, finish it
+
+    private void openFinder(FinderMode mode) throws Exception {
+        Stage finderStage = new Stage();
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("finderUI.fxml"));
+        loader.setControllerFactory(t -> new FinderController(textArea, mode));
+        finderStage.setTitle(mode == FinderMode.FIND ? "Find" : "Replace");
+        finderStage.getIcons().add(new Image(getClass().getResourceAsStream("resources/icon.png")));
+        finderStage.setScene(new Scene(loader.load()));
+        finderStage.resizableProperty().setValue(false);
+        finderStage.initOwner(EditorMain.getPrimaryWindow());
+        finderStage.initStyle(StageStyle.UNIFIED);
+        finderStage.initModality(Modality.NONE);
+        finderStage.show();
+    }
+
     @FXML
-    private void onFind() {
-        Scanner scan = new Scanner(System.in);
-        String text = textArea.getText();
-        int i1, i2;
+    private void onFind() throws Exception {
+        openFinder(FinderMode.FIND);
+    }
 
-        // Popup menu
-        System.out.print("Find what: ");
-        String regex = scan.next();
-
-        System.out.print("Direction (U/d) ");
-        boolean searchUp = scan.next().toLowerCase().equals("u");
-
-        //System.out.print("Match Case? (Y/n) ");
-        //if (scan.next().toLowerCase().equals("y"))
-        //    text = text.toLowerCase();
-
-        //System.out.println("Wrap around? (Y/n) ");
-        //if(scan.next().toLowerCase().equals("y"))
-
-        //System.out.println("Regex? (Y/n)");
-        //boolean isRegex = scan.next().toLowerCase().equals("y");
-
-
-        //if (isRegex) {
-        //    Pattern pattern = Pattern.compile(regex);
-        //    Matcher matcher = pattern.matcher(text);
-
-        //    System.out.println(matcher.find());
-        //    System.out.println(matcher.start());
-            //i1 = matcher.start();
-            //i2 = matcher.end();
-
-            //textArea.selectRange(i1, i2);
-        //} else {
-        //    System.out.println("no regex here");
-        //}
-
-        // search direction
-        if (searchUp) i1 = text.lastIndexOf(regex);
-        else i1 = text.indexOf(regex);
-
-        // find pattern and select
-        if (i1 == -1) System.out.println("Cannot find \"" + regex + "\""); // popup
-        else textArea.selectRange(i1, i1 + regex.length());
-
-        // replace selection
-        System.out.print("Replace with: ");
-        textArea.replaceSelection(scan.next());
+    @FXML
+    private void onReplace() throws Exception {
+        openFinder(FinderMode.REPLACE);
     }
 
     @FXML

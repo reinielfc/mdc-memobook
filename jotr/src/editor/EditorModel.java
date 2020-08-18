@@ -15,7 +15,7 @@ public class EditorModel {
 
     public void save(TextFile textFile) {
         try {
-            Files.write(textFile.getFile(), textFile.getContent(), StandardOpenOption.CREATE);
+            Files.write(textFile.getFile(), textFile.getContent(), StandardOpenOption.CREATE_NEW);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -33,20 +33,6 @@ public class EditorModel {
 
     public void exit() {
         System.exit(0);
-    }
-
-    // EDIT MENU
-
-    public void copy(String text) {
-        final Clipboard clipboard = Clipboard.getSystemClipboard();
-        final ClipboardContent content = new ClipboardContent();
-
-        content.putString(text);
-        clipboard.setContent(content);
-    }
-
-    public String paste() {
-        return Clipboard.getSystemClipboard().getString();
     }
 
 }
