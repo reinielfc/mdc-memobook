@@ -2,6 +2,7 @@ package editor;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 
@@ -82,8 +83,7 @@ public class FinderController {
         int[] selectionBounds = findMatchBounds(textArea.getCaretPosition());
 
         if (selectionBounds[0] == -1) {
-            //TODO: Make alert
-            System.out.println("COULDN'T FIND " + findField.getText());
+            notFoundAlert();
         } else {
             textArea.selectRange(selectionBounds[0], selectionBounds[1]);
         }
@@ -151,16 +151,14 @@ public class FinderController {
 
     @FXML
     private void onReplace() {
-        if (textArea.selectedTextProperty().length().intValue() == 0) {
-            onFindNext();
-        } else {
+        if (textArea.selectedTextProperty().length().intValue() != 0) {
             String textToReplace = textArea.getSelectedText();
             Matcher matcher = pattern.matcher(textToReplace);
             String textReplacement = matcher.replaceFirst(replaceField.getText());
 
             textArea.replaceSelection(textReplacement);
-            onFindNext();
         }
+        onFindNext();
     }
 
     @FXML
@@ -171,6 +169,16 @@ public class FinderController {
         String textReplacement = matcher.replaceAll(replaceField.getText());
 
         textArea.replaceText(0, textArea.getLength(), textReplacement);
+    }
+
+    private void notFoundAlert() {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setHeaderText(null);
+        alert.setTitle("Memobook");
+        alert.setContentText("Cannot Find \"" + findField.getText() + "\"");
+        Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+        stage.getIcons().add(new Image(getClass().getResourceAsStream("resources/icon.png")));
+        stage.show();
     }
 
 
