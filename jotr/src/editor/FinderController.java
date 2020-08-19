@@ -21,11 +21,10 @@ public class FinderController {
     @FXML
     private TextField findField;
 
-    @FXML
-    private HBox directionToggleBox;
+    private Pattern pattern;
 
     @FXML
-    private ToggleGroup directionToggle;
+    private HBox directionToggleBox;
 
     @FXML
     private Toggle directionDown;
@@ -47,9 +46,6 @@ public class FinderController {
 
     @FXML
     private TextField replaceField;
-
-    @FXML
-    private Button findNextButton;
 
     @FXML
     private Button replaceButton;
@@ -122,7 +118,7 @@ public class FinderController {
         if (!regExCheckBox.isSelected())
             flags = flags | Pattern.LITERAL;
 
-        Pattern pattern = Pattern.compile(findFieldText, flags);
+        pattern = Pattern.compile(findFieldText, flags);
 
         Matcher matcher = pattern.matcher(textAreaContent);
 
@@ -155,11 +151,26 @@ public class FinderController {
 
     @FXML
     private void onReplace() {
-        String textToReplace = textArea.getSelectedText();
+        if (textArea.selectedTextProperty().length().intValue() == 0) {
+            onFindNext();
+        } else {
+            String textToReplace = textArea.getSelectedText();
+            Matcher matcher = pattern.matcher(textToReplace);
+            String textReplacement = matcher.replaceFirst(replaceField.getText());
 
-        if (regExCheckBox.isSelected()) {
+            textArea.replaceSelection(textReplacement);
+            onFindNext();
         }
+    }
 
+    @FXML
+    private void onReplaceAll() {
+        findMatchBounds(0);
+        String textToReplace = textArea.getText();
+        Matcher matcher = pattern.matcher(textToReplace);
+        String textReplacement = matcher.replaceAll(replaceField.getText());
+
+        textArea.replaceText(0, textArea.getLength(), textReplacement);
     }
 
 
