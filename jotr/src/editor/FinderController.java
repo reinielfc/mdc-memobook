@@ -1,12 +1,9 @@
 package editor;
 
-import javafx.event.EventHandler;
-import javafx.event.EventType;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
+import javafx.stage.Stage;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -15,22 +12,26 @@ enum FinderMode {FIND, REPLACE}
 
 public class FinderController {
 
-    FinderMode mode;
+    private final Stage finderStage;
+
+    private final FinderMode mode;
 
     private final TextArea textArea;
 
-    private String textAreaContents;
-
     @FXML
     private TextField findField;
-
-    private String textToFind;
 
     @FXML
     private HBox directionToggleBox;
 
     @FXML
     private ToggleGroup directionToggle;
+
+    @FXML
+    private Toggle directionDown;
+
+    @FXML
+    private Toggle directionUp;
 
     @FXML
     private CheckBox regExCheckBox;
@@ -56,10 +57,8 @@ public class FinderController {
     @FXML
     private Button replaceAllButton;
 
-    //@FXML
-    //private ButtonType cancelButton = ButtonType.CANCEL;
-
-    public FinderController(TextArea textArea, FinderMode mode) {
+    public FinderController(Stage stage, TextArea textArea, FinderMode mode) {
+        this.finderStage = stage;
         this.textArea = textArea;
         this.mode = mode;
     }
@@ -72,100 +71,99 @@ public class FinderController {
             replaceButton.managedProperty().setValue(false);
             replaceAllButton.setVisible(false);
             replaceAllButton.managedProperty().setValue(false);
-
         } else {
             directionToggleBox.setVisible(false);
             directionToggleBox.managedProperty().setValue(false);
         }
-
     }
 
-    // FIND MODE
+    /* * * * * * * *\
+     *  FIND MODE  *
+    \* * * * * * * */
 
-    //TODO: Merge regex mode with normal find mode
-    public int[] findWordBounds() {
-        int caretPos = textArea.getCaretPosition();
-        int[] bounds = new int[2];
+    @FXML
+    private void onFindNext() {
+        int[] selectionBounds = findMatchBounds(textArea.getCaretPosition());
 
-        if (directionToggle.getToggles().get(1).isSelected()) {
-            bounds[0] = textAreaContents.indexOf(textToFind, caretPos);
-
-            if (wrapAroundCheckBox.isSelected() && bounds[0] == -1) {
-                textArea.selectRange(0, 0);
-                bounds = findWordBounds();
-            }
-
+        if (selectionBounds[0] == -1) {
+            //TODO: Make alert
+            System.out.println("COULDN'T FIND " + findField.getText());
         } else {
-            bounds[0] = textAreaContents
-                    .substring(0, caretPos - textArea.selectedTextProperty().get().length())
-                    .lastIndexOf(textToFind);
+            textArea.selectRange(selectionBounds[0], selectionBounds[1]);
+        }
+    }
 
-            if (wrapAroundCheckBox.isSelected() && bounds[0] == -1) {
-                textArea.selectRange(textAreaContents.length(), textAreaContents.length());
-                bounds = findWordBounds();
+    public int[] findMatchBounds(int startIndex) {
+        int[] bounds = new int[] {-1, 0};
+        String textAreaContent = textArea.getText();
+        String findFieldText = findField.getText();
+        int flags = 0;
+
+        //TODO: Find a better way to search backwards
+        if (directionUp.isSelected()) {
+            int endIndex = startIndex <= -1 ? startIndex * -1 : textArea.getSelection().getStart();
+            startIndex = 0;
+            textAreaContent = textAreaContent.substring(startIndex, endIndex);
+            if (!regExCheckBox.isSelected()) {
+                if (!matchCaseCheckBox.isSelected()) {
+                    textAreaContent = textAreaContent.toLowerCase();
+                    findFieldText = findFieldText.toLowerCase();
+                }
+                startIndex = textAreaContent.lastIndexOf(findFieldText);
+                startIndex = startIndex == -1 ? 0 : startIndex;
+            } else {
+                findFieldText += "(?!.*" + findFieldText + ")";
             }
         }
 
-        bounds[1] = bounds[0] + textToFind.length();
+        if (!matchCaseCheckBox.isSelected())
+            flags = flags | Pattern.CASE_INSENSITIVE;
 
-        return bounds;
-    }
+        if (!regExCheckBox.isSelected())
+            flags = flags | Pattern.LITERAL;
 
-    public int[] regexFindWordBounds() {
-        int caretPos = textArea.getCaretPosition();
-        int[] bounds = new int[] {-1, 0};
+        Pattern pattern = Pattern.compile(findFieldText, flags);
 
-        if (directionToggle.getToggles().get(1).isSelected()) {
-            Pattern pattern = Pattern.compile(textToFind);
-            Matcher matcher = pattern.matcher(textAreaContents.substring(caretPos));
-            if (matcher.find()) {
-                bounds[0] = matcher.start() + caretPos;
-                bounds[1] = matcher.end() + caretPos;
-            } else if (wrapAroundCheckBox.isSelected()) {
-                textArea.selectRange(0, 0);
-                bounds = regexFindWordBounds();
+        Matcher matcher = pattern.matcher(textAreaContent);
+
+        if(matcher.find(startIndex)) {
+            bounds[0] = matcher.start();
+            bounds[1] = matcher.end();
+
+        } else if (wrapAroundCheckBox.isSelected()) {
+            Matcher newMatcher = pattern.matcher(textArea.getText());
+
+            if (newMatcher.find()) {
+                if (directionDown.isSelected())
+                    bounds = findMatchBounds(0);
+                else
+                    bounds = findMatchBounds(textArea.getText().length() * -1);
             }
-        } else {
-            // TODO: this doesn't work right
-            Pattern pattern = Pattern.compile("(?:.*)" + textToFind);
-            Matcher matcher = pattern.matcher(textAreaContents.substring(0, caretPos));
-            if (matcher.find()) {
-                bounds[0] = matcher.start() - caretPos;
-                bounds[1] = matcher.end() - caretPos;
-            } else if (wrapAroundCheckBox.isSelected()) {
-                textArea.selectRange(textAreaContents.length(), textAreaContents.length());
-                //bounds = regexFindWordBounds();
-            }
-
         }
 
         return bounds;
     }
 
     @FXML
-    public void onFindNext() {
-        textAreaContents = textArea.getText();
-        textToFind = findField.getText();
-        int[] regexBounds;
+    private void onCancel() {
+        finderStage.close();
+    }
 
-        if (matchCaseCheckBox.isSelected()) {
-            textAreaContents = textAreaContents.toLowerCase();
-            textToFind = textToFind.toLowerCase();
+    /* * * * * * * * *\
+     *  REPLACE MODE *
+    \* * * * * * * * */
+
+    @FXML
+    private void onReplace() {
+        String textToReplace = textArea.getSelectedText();
+
+        if (regExCheckBox.isSelected()) {
         }
 
-        if (regExCheckBox.isSelected())
-            regexBounds = regexFindWordBounds();
-        else regexBounds = findWordBounds();
-
-        if (regexBounds[0] == -1)
-            System.out.println(textToFind + " <-- NOT FOUND");
-        else textArea.selectRange(regexBounds[0], regexBounds[1]);
     }
-    /*
-        // replace selection
-    System.out.print("Replace with: ");
-    textArea.replaceSelection(scan.next());
-    */
+
+
+
 }
 
 

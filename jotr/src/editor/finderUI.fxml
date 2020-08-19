@@ -47,11 +47,11 @@
                               </Label>
                               <HBox spacing="5.0">
                                  <children>
-                                    <RadioButton maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" prefHeight="17.0" prefWidth="37.0" text="Up">
+                                    <RadioButton fx:id="directionUp" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" prefHeight="17.0" prefWidth="37.0" text="Up">
                                        <toggleGroup>
                                           <ToggleGroup fx:id="directionToggle" />
                                        </toggleGroup></RadioButton>
-                                    <RadioButton maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" prefHeight="17.0" prefWidth="52.0" selected="true" text="Down" toggleGroup="$directionToggle" />
+                                    <RadioButton fx:id="directionDown" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" prefHeight="17.0" prefWidth="52.0" selected="true" text="Down" toggleGroup="$directionToggle" />
                                  </children>
                               </HBox>
                            </children>
@@ -76,7 +76,7 @@
             <Button layoutX="15.0" layoutY="15.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#onFindNext" prefHeight="25.0" prefWidth="75.0" text="Find Next" />
             <Button fx:id="replaceButton" layoutX="15.0" layoutY="15.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" prefHeight="25.0" prefWidth="75.0" text="Replace" />
             <Button fx:id="replaceAllButton" layoutX="15.0" layoutY="45.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" prefHeight="25.0" prefWidth="75.0" text="Replace All" />
-            <Button fx:id="cancelButton" layoutX="15.0" layoutY="75.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" prefHeight="25.0" prefWidth="75.0" text="Cancel">
+            <Button onAction="#onCancel" cancelButton="true" layoutX="15.0" layoutY="75.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" prefHeight="25.0" prefWidth="75.0" text="Cancel">
                <VBox.margin>
                   <Insets />
                </VBox.margin>

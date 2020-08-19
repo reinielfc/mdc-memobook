@@ -13,9 +13,10 @@ public class TextFile {
     public TextFile(Path file, List<String> content) {
         this.file = file;
         this.content = content;
-
         fileName = new SimpleStringProperty(
                 file == null ? "Untitled" : file.getFileName().toString());
+
+
     }
 
     public Path getFile() {

@@ -1,12 +1,8 @@
 package editor;
 
-import javafx.scene.input.Clipboard;
-import javafx.scene.input.ClipboardContent;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.util.List;
 
 public class EditorModel {
@@ -15,7 +11,7 @@ public class EditorModel {
 
     public void save(TextFile textFile) {
         try {
-            Files.write(textFile.getFile(), textFile.getContent(), StandardOpenOption.CREATE_NEW);
+            Files.write(textFile.getFile(), textFile.getContent());
         } catch (IOException e) {
             e.printStackTrace();
         }
